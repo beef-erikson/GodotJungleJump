@@ -44,9 +44,21 @@ func _physics_process(delta):
 		return
 	for idx in range(get_slide_count()):
 		var collision = get_slide_collision(idx)
+		
 		if collision.collider.name == 'Danger':
 			hurt()
-	
+		
+		# Checks if player has jumped on enemy using it y coord, otherwise player is hurt
+		if collision.collider.is_in_group('enemies'):
+			var player_feet = (position + $CollisionShape2D.shape.extents).y
+			# Enemy hurt
+			if player_feet < collision.collider.position.y:
+				collision.collider.take_damage()
+				velocity.y = -200
+			# Player hurt
+			else:
+				hurt()
+
 	# State changes
 	if state == JUMP and is_on_floor():
 		change_state(IDLE)
