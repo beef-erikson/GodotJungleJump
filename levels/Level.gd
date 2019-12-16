@@ -47,6 +47,7 @@ func _on_Collectible_pickup():
 	emit_signal('score_changed', score)
 
 
-# Player death 
+# Player death - restarts game after a delay
 func _on_Player_dead():
-	pass
+	yield(get_tree().create_timer(2), 'timeout')
+	GameState.restart()
