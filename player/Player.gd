@@ -14,6 +14,10 @@ var state
 var anim
 var new_anim
 
+# Jump support
+var max_jumps = 2
+var jump_count = 0
+
 # Movement support
 var velocity = Vector2()
 
@@ -28,16 +32,18 @@ func _ready():
 
 # Add gravity to velocity and use move_and_slide for movement
 func _physics_process(delta):
-	velocity.y += gravity * delta
-	get_input()
+	if state != DEAD:
+		velocity.y += gravity * delta
+		get_input()
 	
 	# Plays animation if different than current
 	if new_anim != anim:
 		anim = new_anim
 		$AnimationPlayer.play(anim)
-
+	
 	# Moves player (second vector property defines direction surface is facing, in this case top)
-	velocity = move_and_slide(velocity, Vector2(0, -1))
+	if state != DEAD:
+		velocity = move_and_slide(velocity, Vector2(0, -1))
 	
 	# Checks if player hit danger layer (takes damage if not already in hurt state)
 	if state == HURT:
@@ -48,16 +54,21 @@ func _physics_process(delta):
 		if collision.collider.name == 'Danger':
 			hurt()
 		
-		# Checks if player has jumped on enemy using it y coord, otherwise player is hurt
+		# Checks if player has jumped on enemy using its y coord, otherwise player is hurt
 		if collision.collider.is_in_group('enemies'):
 			var player_feet = (position + $CollisionShape2D.shape.extents).y
 			# Enemy hurt
 			if player_feet < collision.collider.position.y:
+				$EnemyHurtSound.play()
 				collision.collider.take_damage()
 				velocity.y = -200
 			# Player hurt
 			else:
 				hurt()
+
+	# If player is 'infinitely falling', change to dead after y is 1000
+	if position.y > 1000:
+		change_state(DEAD)
 
 	# State changes
 	if state == JUMP and is_on_floor():
@@ -93,15 +104,24 @@ func get_input():
 	# -- Movement
 	velocity.x = 0
 	
+	# Moving left and right
 	if right:
 		velocity.x += run_speed
 		$Sprite.flip_h = false
 	if left:
 		velocity.x -= run_speed
 		$Sprite.flip_h = true
+	
+	# Jump and double jump
+	if jump and state == JUMP and jump_count < max_jumps:
+		new_anim = 'jump_up'
+		velocity.y = jump_speed / 1.5
+		jump_count += 1
 	if jump and is_on_floor():
+		$JumpSound.play()		
 		change_state(JUMP)
 		velocity.y = jump_speed
+
 	
 	# State transitions during movement
 	if state == IDLE and velocity.x != 0:
@@ -127,12 +147,19 @@ func change_state(new_state):
 			velocity.y = -100 * sign(velocity.x)
 			life -= 1
 			emit_signal('life_changed', life)
-			yield(get_tree().create_timer(0.5), 'timeout')
-			change_state(IDLE)
+			if life >= 0:
+				$HurtSound.play()
 			if life <= 0:
+				velocity.x = 0
+				velocity.y = 0
 				change_state(DEAD)
+			if state != DEAD:
+				yield(get_tree().create_timer(0.5), 'timeout')
+			change_state(IDLE)
+			
 		JUMP:
 			new_anim = 'jump_up'
+			jump_count = 1
 		DEAD:
 			emit_signal('dead')
 			hide()

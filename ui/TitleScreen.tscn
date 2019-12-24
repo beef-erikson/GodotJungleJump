@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/TitleScreen.gd" type="Script" id=1]
 [ext_resource path="res://assets/environment/layers/back.png" type="Texture" id=2]
 [ext_resource path="res://assets/environment/layers/middle.png" type="Texture" id=3]
 [ext_resource path="res://assets/Kenney Thick.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://assets/audio/Intro Theme.ogg" type="AudioStream" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 64
@@ -120,3 +121,7 @@ text = "Press Space to play"
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 autoplay = "anim"
 anims/anim = SubResource( 3 )
+
+[node name="TitleScreenMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 5 )
+autoplay = true

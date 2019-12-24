@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://levels/Level.gd" type="Script" id=1]
 [ext_resource path="res://assets/environment/layers/back.png" type="Texture" id=2]
@@ -8,6 +8,9 @@
 [ext_resource path="res://assets/tilesets/tiles_spikes.tres" type="TileSet" id=6]
 [ext_resource path="res://player/Player.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/HUD.tscn" type="PackedScene" id=8]
+[ext_resource path="res://items/Door.tscn" type="PackedScene" id=9]
+[ext_resource path="res://assets/audio/pickup2.ogg" type="AudioStream" id=10]
+[ext_resource path="res://assets/audio/Grasslands Theme.ogg" type="AudioStream" id=11]
 
 [node name="Level" type="Node2D"]
 script = ExtResource( 1 )
@@ -74,6 +77,17 @@ visible = false
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="HUD" parent="CanvasLayer" instance=ExtResource( 8 )]
+
+[node name="Door" parent="." instance=ExtResource( 9 )]
+
+[node name="PickupSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 10 )
+volume_db = -20.0
+
+[node name="GrasslandsMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 11 )
+autoplay = true
 [connection signal="score_changed" from="." to="CanvasLayer/HUD" method="_on_score_changed"]
 [connection signal="dead" from="Player" to="." method="_on_Player_dead"]
 [connection signal="life_changed" from="Player" to="CanvasLayer/HUD" method="_on_Player_life_changed"]
+[connection signal="body_entered" from="Door" to="." method="_on_Door_body_entered"]

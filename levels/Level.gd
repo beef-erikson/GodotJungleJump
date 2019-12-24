@@ -6,7 +6,7 @@ var score
 
 # Caches the pickups
 onready var pickups = $Pickups
-var Collectible = preload('res://collectible/Collectible.tscn')
+var Collectible = preload('res://items/Collectible.tscn')
 
 # Hides pickups, puts the player at spawn location and inits score/camera
 func _ready():
@@ -44,10 +44,23 @@ func spawn_pickups():
 # Add to score, collectible picked up
 func _on_Collectible_pickup():
 	score += 1
+	$PickupSound.play()
 	emit_signal('score_changed', score)
 
 
 # Player death - restarts game after a delay
 func _on_Player_dead():
-	yield(get_tree().create_timer(2), 'timeout')
+	var death_timer = Timer.new()
+	death_timer.set_wait_time(1)
+	death_timer.set_one_shot(true)
+	self.add_child(death_timer)
+	death_timer.start()
+	yield(death_timer, 'timeout')
+	death_timer.queue_free()
+	
 	GameState.restart()
+
+
+# Door entered - move on to next level
+func _on_Door_body_entered(body):
+	GameState.next_level()

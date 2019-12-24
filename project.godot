@@ -16,6 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Jungle Jump"
+run/main_scene="res://ui/TitleScreen.tscn"
 config/icon="res://icon.png"
 
 [autoload]
