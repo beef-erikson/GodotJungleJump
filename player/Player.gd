@@ -8,7 +8,7 @@ export (int) var jump_speed
 export (int) var gravity
 
 # State machine
-enum {IDLE, RUN, JUMP, HURT, DEAD}
+enum {IDLE, RUN, JUMP, HURT, DEAD, CROUCH}
 
 var state
 var anim
@@ -17,6 +17,7 @@ var new_anim
 # Jump support
 var max_jumps = 2
 var jump_count = 0
+var starting_dust = false
 
 # Movement support
 var velocity = Vector2()
@@ -73,6 +74,8 @@ func _physics_process(delta):
 	# State changes
 	if state == JUMP and is_on_floor():
 		change_state(IDLE)
+		if starting_dust == true:
+			$Dust.emitting = true
 	if state == JUMP and velocity.y > 0:
 		new_anim = 'jump_down'
 
@@ -100,6 +103,7 @@ func get_input():
 	var right = Input.is_action_pressed('right')
 	var left = Input.is_action_pressed('left')
 	var jump = Input.is_action_just_pressed('jump')
+	var down = Input.is_action_pressed('crouch')
 	
 	# -- Movement
 	velocity.x = 0
@@ -118,13 +122,19 @@ func get_input():
 		velocity.y = jump_speed / 1.5
 		jump_count += 1
 	if jump and is_on_floor():
+		starting_dust = true
 		$JumpSound.play()		
 		change_state(JUMP)
 		velocity.y = jump_speed
 
+	# Crouching
+	if down and is_on_floor():
+		change_state(CROUCH)
+	if !down and state == CROUCH:
+		change_state(IDLE)
 	
 	# State transitions during movement
-	if state == IDLE and velocity.x != 0:
+	if state in [IDLE, CROUCH] and velocity.x != 0:
 		change_state(RUN)
 	if state == RUN and velocity.x == 0:
 		change_state(IDLE)
@@ -163,3 +173,5 @@ func change_state(new_state):
 		DEAD:
 			emit_signal('dead')
 			hide()
+		CROUCH:
+			new_anim = 'crouch'
